@@ -1,0 +1,85 @@
+#!/bin/bash
+HOST=$(hostname);
+LAST_LOGIN=$(last -1 $LOGNAME | awk '{print $3,$4,$5,$6}');
+DIRECTORIES_IN_PATH=$(printenv PATH|tr : '\n'|wc -l | sed 's/[[:blank:]]//g');
+NUMBER_OF_VARIABLES=$( ( set -o posix ; set ) | wc -l | sed 's/[[:blank:]]//g');
+LARGEST="Largest number: ";
+SMALLEST="Smallest number: ";
+
+systemInfo(){
+#For some reason, this here document will not let me indent the code without throwing an error
+cat <<- _EOF_
+
+Welcome $USER $0!!!
+Host:....................$HOST
+Last login:..............$LAST_LOGIN    
+Number of all variables:.$NUMBER_OF_VARIABLES
+Directories in PATH:.....$DIRECTORIES_IN_PATH
+
+_EOF_
+}
+
+getUserInput(){
+	echo "Please enter 3 numbers: "
+	echo -n "   First number:  "
+	read int1
+	echo -n "   Second number: "
+	read int2
+	echo -n "   Third number:  "
+	read int3
+}
+
+validateInput() {
+	for i in $1 $2 $3
+	do
+		if ! [[ $i =~ ^-?[0-9]+$ ]]; then
+			echo "$i is not a valid integer" >&2
+			exit 1
+		elif [ -z $i ]; then
+			echo "You need to enter a numeric value" >&2
+			exit 1
+        fi
+	done
+}
+
+getLargestNumber() {
+	if [[ $1 -ge $2 && $1 -ge $3 ]]; then
+		echo -e "\n$LARGEST  $1"
+	elif [[ $2 -ge $1 && $2 -ge $3 ]]; then
+		echo -e "\n$LARGEST  $2"
+	else
+		echo -e "\n$LARGEST  $3"
+	fi
+}
+
+
+getSmallestNumber() {
+	if [[ $1 -le $2 && $1 -le $3 ]]; then
+		echo -e "$SMALLEST $1\n"
+	elif [[ $2 -le $1 && $2 -le $3 ]]; then
+		echo -e "$SMALLEST $2\n"
+	else
+		echo -e "$SMALLEST $3\n"
+	fi
+}
+
+calculate(){
+	echo "Sum:        $(( $1 + $2 + $3 ))"
+	echo "Difference: $(( $1 - $2 - $3 ))"
+	echo "Product:    $(( $1 * $2 * $3 ))"
+	echo "Quotient:   $(( $1 / $2 / $3 ))"
+}
+
+#main
+
+systemInfo
+getUserInput
+validateInput $int1 $int2 $int3
+if [ $int1 -eq $int2 -a $int2 -eq $int3 ]; then
+	echo "All values are equal"
+else
+	getLargestNumber $int1 $int2 $int3
+	getSmallestNumber $int1 $int2 $int3
+fi
+calculate $int1 $int2 $int3
+echo -e "\nScript complete\n"
